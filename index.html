@@ -1,243 +1,482 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>학생회 물품 대여 장부</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #ffffff;
-    }
+<meta charset="UTF-8" />
+<title>학생회 물품 대여 장부</title>
 
-    h1 {
-      margin-bottom: 10px;
-    }
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background:#ffffff; }
+h1 { margin-bottom:10px; }
 
-    .top-area {
-      margin-bottom: 15px;
-    }
+.notice-box {
+  background:#f7f7f7;
+  border:1px solid #ddd;
+  padding:10px 14px;
+  margin-bottom:14px;
+  font-size:14px;
+  line-height:1.7;
+}
 
-    .form-area {
-      margin-bottom: 20px;
-    }
+.top-area { margin-bottom:15px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.form-area { margin-bottom:20px; }
 
-    select, input, button {
-      padding: 6px;
-      margin-right: 6px;
-      font-size: 14px;
-    }
+select, input, button {
+  padding:6px;
+  margin-right:6px;
+  font-size:14px;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+table { width:100%; border-collapse:collapse; }
+th, td {
+  border:1px solid #ccc;
+  padding:6px;
+  text-align:center;
+  font-size:14px;
+}
+th { background:#f2f2f2; }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: center;
-      font-size: 14px;
-    }
+button { cursor:pointer; }
+button:disabled { opacity:0.5; cursor:not-allowed; }
+.reset-btn { background:#eee; }
 
-    th {
-      background: #f2f2f2;
-    }
+.overlay {
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
 
-    button {
-      cursor: pointer;
-    }
+.guide-box {
+  background:#fff;
+  padding:20px;
+  width:420px;
+  border-radius:6px;
+  text-align:center;
+}
 
-    button:disabled {
-      cursor: default;
-      opacity: 0.5;
-    }
+/* ✅ 타이틀 옆 날짜 라벨 */
+.date-label {
+  font-size: 14px;
+  color: #888;
+  margin-left: 10px;
+  font-weight: normal;
+}
 
-    .reset-btn {
-      background: #eee;
-    }
+/* ✅ 상태 뱃지 */
+.badge {
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:12px;
+  border:1px solid #ddd;
+}
+.badge.available { background:#f7fff7; }
+.badge.rented { background:#fff7f7; border-color:#f2c9c9; }
 
-    /* 안내 팝업 */
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+/* ✅ 상단 모드 표시 */
+.mode-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border:1px solid #ddd;
+  border-radius:999px;
+  background:#fff;
+  font-size:13px;
+}
+.mode-dot {
+  width:10px; height:10px; border-radius:50%;
+  background:#bbb;
+}
+.mode-dot.admin { background:#2e7d32; }
+.mode-dot.view { background:#999; }
 
-    .guide-box {
-      background: #fff;
-      padding: 20px;
-      width: 400px;
-      border-radius: 6px;
-      text-align: center;
-    }
-
-    .guide-box p {
-      margin-bottom: 20px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-  </style>
+.small {
+  font-size:12px;
+  color:#666;
+}
+</style>
 </head>
 <body>
 
-  <!-- 안내 팝업 -->
-  <div id="guideOverlay" class="overlay" style="display:none;">
-    <div class="guide-box">
-      <p>
-        📌 <strong>학생회 물품 대여 장부 안내</strong><br><br>
-        1. 물품을 선택하고 이름·학번을 입력한 뒤 <b>[대여하기]</b>를 누르세요.<br>
-        2. 반납 시 본인 대여 행의 <b>[반납]</b> 버튼을 눌러주세요.<br>
-        3. 하루가 끝나면 학생회 관리자만 <b>[초기화]</b> 버튼으로 새 장부를 시작합니다.
-      </p>
-      <button onclick="closeGuide()">확인</button>
-    </div>
+<!-- 최초 접속 안내 팝업 -->
+<div id="guideOverlay" class="overlay">
+  <div class="guide-box">
+    <p>
+      📌 <b>학생회 물품 대여 장부 안내</b><br><br>
+      1. 물품 선택 후 이름·학번 입력 → <b>[대여하기]</b><br>
+      2. 반납은 <b>학생회 담당자 확인 후</b> 처리됩니다.<br>
+      3. 물품 대여는 운영 시간인 <b>10시~18시</b> 내에만 가능합니다.<br><br>
+      ✅ <b>일회용품은 장부를 작성하지 않아도 됩니다.</b>
+    </p>
+    <button id="closeGuideBtn">확인</button>
   </div>
+</div>
 
-  <h1>학생회 물품 대여 장부</h1>
+<!-- ✅ 타이틀 + 오늘 날짜 -->
+<h1>
+  학생회 물품 대여 장부
+  <span id="todayLabel" class="date-label"></span>
+</h1>
 
-  <!-- 관리자 초기화 버튼 -->
-  <div class="top-area">
-    <button class="reset-btn" onclick="resetAll()">초기화 (새 장부)</button>
-  </div>
+<!-- 상단 공지 -->
+<div class="notice-box">
+✔ 물품 대여는 운영 시간인 <b>10시~18시</b> 내에만 가능합니다.<br>
+✔ 물품 반납 또한 <b>대여 당일 운영 시간 내</b>에 부탁드립니다.<br>
+✔ 반납은 <b>학생회 담당자의 확인</b>이 필요합니다.<br>
+<span class="small">※ 이 페이지는 누구나 조회할 수 있으며, 대여/반납 처리는 단대방 노트북(관리자 모드)에서만 가능합니다.</span>
+</div>
 
-  <!-- 대여 입력 -->
-  <div class="form-area">
-    <select id="itemSelect">
-      <option value="실험복">실험복</option>
-      <option value="계산기">계산기</option>
-      <option value="컴퓨터사인펜">컴퓨터사인펜</option>
-      <option value="화이트">화이트</option>
-    </select>
+<div class="top-area">
+  <span class="mode-pill" id="modePill">
+    <span class="mode-dot view" id="modeDot"></span>
+    <span id="modeText">조회 전용 모드</span>
+  </span>
 
-    <input type="text" id="nameInput" placeholder="이름" />
-    <input type="text" id="studentIdInput" placeholder="학번" />
-    <button onclick="rentItem()">대여하기</button>
-  </div>
+  <button id="adminSetBtn">관리자 토큰 설정</button>
+  <button id="adminClearBtn">관리자 모드 해제</button>
 
-  <!-- 대여 장부 -->
-  <table>
-    <thead>
-      <tr>
-        <th>번호</th>
-        <th>물품</th>
-        <th>이름</th>
-        <th>학번</th>
-        <th>대여 시각</th>
-        <th>반납 시각</th>
-        <th>반납</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+  <button class="reset-btn" id="resetBtn">초기화 (새 장부)</button>
+  <button id="refreshBtn">새로고침</button>
+</div>
 
-  <script>
-    /**********************
-     * 설정
-     **********************/
-    const ADMIN_PASSWORD = "0510";
-    const STORAGE_KEY = "rentalRecords";
-    const GUIDE_KEY = "guideChecked";
+<div class="form-area">
+  <select id="itemSelect"></select>
+  <select id="itemNoSelect"></select>
+  <input id="nameInput" placeholder="이름">
+  <input id="studentInput" placeholder="학번">
+  <button id="rentBtn">대여하기</button>
+</div>
 
-    let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+<table>
+<thead>
+<tr>
+<th>번호</th>
+<th>물품</th>
+<th>물품번호</th>
+<th>상태</th>
+<th>이름</th>
+<th>학번</th>
+<th>대여 시각</th>
+<th>반납 시각</th>
+<th>반납</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
 
-    function saveRecords() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+<script>
+/** ===============================
+ * ✅ 너가 바꿀 것 1개: SCRIPT_URL
+ * =============================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiC5h37_p7_m-mDOgffQjSIgJQc2q82d1SdrZZkVAgGIeK2UH_DaxIWMDW0J-kf_xfOA/exec";
+
+/** ===============================
+ * 관리자 토큰 저장 키(단대방 노트북에만 저장)
+ * =============================== */
+const ADMIN_TOKEN_KEY = "정찬";
+
+/** ====== 상태 데이터(구글시트 items) ====== */
+let items = [];               // [{item,itemNo,status,renterName,renterStudent,rentTime,returnTime}, ...]
+let itemMap = new Map();      // key: "item::itemNo" -> row object
+let activeSet = new Set();    // rented인 것만 item::itemNo
+
+function nowLabel() {
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  const el=document.getElementById("todayLabel");
+  if(el) el.textContent=`(${y}.${m}.${day} 기준)`;
+}
+
+function getAdminToken() {
+  return localStorage.getItem(ADMIN_TOKEN_KEY) || "";
+}
+function isAdmin() {
+  return !!getAdminToken();
+}
+function setModeUI() {
+  const dot = document.getElementById("modeDot");
+  const text = document.getElementById("modeText");
+  if (isAdmin()) {
+    dot.classList.add("admin");
+    dot.classList.remove("view");
+    text.textContent = "관리자 모드(단대방 전용)";
+  } else {
+    dot.classList.add("view");
+    dot.classList.remove("admin");
+    text.textContent = "조회 전용 모드";
+  }
+
+  // 관리자만 가능: 대여/반납/초기화
+  document.getElementById("rentBtn").disabled = !isAdmin();
+  document.getElementById("resetBtn").disabled = !isAdmin();
+
+  // 입력창도 조회 전용일 때는 잠그는 게 UX가 낫다
+  document.getElementById("nameInput").disabled = !isAdmin();
+  document.getElementById("studentInput").disabled = !isAdmin();
+}
+
+async function apiGetItems() {
+  const res = await fetch(SCRIPT_URL, { method: "GET" });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || "GET failed");
+  return json.items || [];
+}
+
+async function apiPost(payload) {
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || "POST failed");
+  return json;
+}
+
+function rebuildIndex() {
+  itemMap.clear();
+  activeSet.clear();
+  for (const r of items) {
+    const key = `${r.item}::${r.itemNo}`;
+    itemMap.set(key, r);
+    if (String(r.status) === "rented" && String(r.itemNo) !== "∞") {
+      activeSet.add(key);
     }
+  }
+}
 
-    function formatTime(date) {
-      return date.toLocaleString();
+/** items 데이터를 기반으로 물품/번호 셀렉트 구성 */
+function initItemSelect() {
+  const sel = document.getElementById("itemSelect");
+  sel.innerHTML = "";
+
+  // item 목록 추출(정렬)
+  const itemNames = Array.from(new Set(items.map(x => String(x.item)))).sort((a,b)=>a.localeCompare(b,"ko"));
+
+  for (const name of itemNames) {
+    const o = document.createElement("option");
+    o.value = name;
+    o.textContent = name;
+    sel.appendChild(o);
+  }
+}
+
+function sortItemNo(a, b) {
+  // "∞"는 맨 뒤
+  if (a === "∞" && b === "∞") return 0;
+  if (a === "∞") return 1;
+  if (b === "∞") return -1;
+  const na = Number(a), nb = Number(b);
+  if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+  return String(a).localeCompare(String(b),"ko");
+}
+
+function updateItemNoSelect() {
+  const item = document.getElementById("itemSelect").value;
+  const sel = document.getElementById("itemNoSelect");
+  sel.innerHTML = "";
+
+  const nos = items
+    .filter(x => String(x.item) === item)
+    .map(x => String(x.itemNo))
+    .sort(sortItemNo);
+
+  for (const no of nos) {
+    const o = document.createElement("option");
+    o.value = no;
+    const key = `${item}::${no}`;
+    const row = itemMap.get(key);
+
+    if (no !== "∞" && row && String(row.status) === "rented") {
+      o.disabled = true;
+      o.textContent = `${no}번 (대여중)`;
+    } else if (no === "∞") {
+      o.textContent = `(대여 가능)`;
+    } else {
+      o.textContent = `${no}번`;
     }
+    sel.appendChild(o);
+  }
 
-    function renderTable() {
-      const tbody = document.getElementById("tableBody");
-      tbody.innerHTML = "";
+  // 첫 번째 enabled 옵션으로 자동 선택
+  const first = [...sel.options].find(x => !x.disabled);
+  sel.value = first ? first.value : "";
+}
 
-      records.forEach((record, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${record.id}</td>
-          <td>${record.item}</td>
-          <td>${record.name}</td>
-          <td>${record.studentId}</td>
-          <td>${record.rentTime}</td>
-          <td>${record.returnTime || ""}</td>
-          <td>
-            <button ${record.returnTime ? "disabled" : ""} onclick="returnItem(${index})">
-              반납
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+/** 테이블 렌더: items 시트 현재 상태를 그대로 표시 */
+function renderTable() {
+  const body = document.getElementById("tableBody");
+  body.innerHTML = "";
 
-    function rentItem() {
-      const item = document.getElementById("itemSelect").value;
-      const name = document.getElementById("nameInput").value.trim();
-      const studentId = document.getElementById("studentIdInput").value.trim();
+  const sorted = [...items].sort((a,b)=>{
+    const ia = String(a.item).localeCompare(String(b.item),"ko");
+    if (ia !== 0) return ia;
+    return sortItemNo(String(a.itemNo), String(b.itemNo));
+  });
 
-      if (!name || !studentId) {
-        alert("이름과 학번을 입력하세요.");
-        return;
+  sorted.forEach((r, i) => {
+    const tr = document.createElement("tr");
+
+    const status = String(r.status || "");
+    const badgeClass = status === "rented" ? "rented" : "available";
+    const badgeText = status === "rented" ? "대여중" : "대여가능";
+
+    tr.innerHTML =
+      `<td>${i+1}</td>` +
+      `<td>${escapeHtml(String(r.item||""))}</td>` +
+      `<td>${String(r.itemNo)==="∞" ? "-" : escapeHtml(String(r.itemNo))}</td>` +
+      `<td><span class="badge ${badgeClass}">${badgeText}</span></td>` +
+      `<td>${escapeHtml(String(r.renterName||""))}</td>` +
+      `<td>${escapeHtml(String(r.renterStudent||""))}</td>` +
+      `<td>${formatTime(r.rentTime)}</td>` +
+      `<td>${formatTime(r.returnTime)}</td>` +
+      `<td></td>`;
+
+    const btn = document.createElement("button");
+    btn.textContent = "반납";
+
+    const canReturn = isAdmin() && status === "rented";
+    btn.disabled = !canReturn;
+
+    btn.onclick = async () => {
+      try {
+        await returnItem(String(r.item), String(r.itemNo));
+      } catch (e) {
+        alert(String(e.message || e));
       }
+    };
 
-      records.push({
-        id: records.length + 1,
-        item,
-        name,
-        studentId,
-        rentTime: formatTime(new Date()),
-        returnTime: null
-      });
+    tr.lastChild.appendChild(btn);
+    body.appendChild(tr);
+  });
+}
 
-      saveRecords();
-      renderTable();
+function formatTime(v) {
+  if (!v) return "";
+  // Apps Script가 Date를 내보내면 문자열/객체 혼용될 수 있어 안전하게 처리
+  try {
+    // 이미 "2026-..." 같은 문자열이면 그대로
+    if (typeof v === "string") return v;
+    // 숫자면 Date로
+    if (typeof v === "number") return new Date(v).toLocaleString("ko-KR");
+    // 그 외는 stringify
+    return String(v);
+  } catch {
+    return String(v);
+  }
+}
 
-      document.getElementById("nameInput").value = "";
-      document.getElementById("studentIdInput").value = "";
-    }
+function escapeHtml(s) {
+  return s
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
-    function returnItem(index) {
-      if (records[index].returnTime) return;
-      records[index].returnTime = formatTime(new Date());
-      saveRecords();
-      renderTable();
-    }
+/** ===== 관리자 동작(POST) ===== */
+async function rentItem() {
+  const item = document.getElementById("itemSelect").value;
+  const itemNo = document.getElementById("itemNoSelect").value;
+  const name = document.getElementById("nameInput").value.trim();
+  const student = document.getElementById("studentInput").value.trim();
 
-    function resetAll() {
-      const password = prompt("관리자 비밀번호를 입력하세요");
-      if (password !== ADMIN_PASSWORD) {
-        alert("비밀번호가 올바르지 않습니다.");
-        return;
-      }
+  if (!isAdmin()) {
+    alert("조회 전용 모드입니다. 대여 처리는 단대방 노트북에서만 가능합니다.");
+    return;
+  }
+  if (!name || !student) {
+    alert("이름과 학번을 입력하세요.");
+    return;
+  }
 
-      if (!confirm("모든 대여 기록이 삭제됩니다.\n새 장부를 시작할까요?")) return;
+  const token = getAdminToken();
+  await apiPost({ token, action: "rent", item, itemNo, name, student });
 
-      records = [];
-      saveRecords();
-      renderTable();
-    }
+  document.getElementById("nameInput").value = "";
+  document.getElementById("studentInput").value = "";
+  await refresh();
+}
 
-    // 안내 팝업 제어
-    function closeGuide() {
-      localStorage.setItem(GUIDE_KEY, "true");
-      document.getElementById("guideOverlay").style.display = "none";
-    }
+async function returnItem(item, itemNo) {
+  const token = getAdminToken();
+  if (!token) throw new Error("관리자 토큰이 필요합니다.");
+  await apiPost({ token, action: "return", item, itemNo });
+  await refresh();
+}
 
-    // 최초 로딩
-    if (!localStorage.getItem(GUIDE_KEY)) {
-      document.getElementById("guideOverlay").style.display = "flex";
-    }
+async function resetAll() {
+  if (!isAdmin()) {
+    alert("조회 전용 모드입니다. 초기화는 단대방 노트북에서만 가능합니다.");
+    return;
+  }
+  if (!confirm("정말 모든 상태를 초기화합니까? (items를 전부 available로 되돌립니다)")) return;
+
+  const token = getAdminToken();
+  await apiPost({ token, action: "reset" });
+  await refresh();
+}
+
+/** ===== 관리자 모드 토큰 설정/해제 ===== */
+function setAdminToken() {
+  const t = prompt("관리자 토큰을 입력하세요(단대방 노트북 전용).");
+  if (!t) return;
+  localStorage.setItem(ADMIN_TOKEN_KEY, t.trim());
+  setModeUI();
+  renderTable();
+  updateItemNoSelect();
+}
+
+function clearAdminToken() {
+  if (!confirm("이 기기에서 관리자 모드를 해제할까요?")) return;
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  setModeUI();
+  renderTable();
+  updateItemNoSelect();
+}
+
+/** ===== 데이터 로드/갱신 ===== */
+async function refresh() {
+  try {
+    items = await apiGetItems();
+    rebuildIndex();
+
+    // 셀렉트 초기화(처음 1회 또는 items 구조 바뀐 경우)
+    initItemSelect();
+    updateItemNoSelect();
 
     renderTable();
-  </script>
+  } catch (e) {
+    alert("데이터를 불러오지 못했습니다.\n" + String(e.message || e));
+  }
+}
+
+/** ===== 이벤트 바인딩 ===== */
+document.getElementById("rentBtn").onclick = () => rentItem().catch(e=>alert(String(e.message||e)));
+document.getElementById("resetBtn").onclick = () => resetAll().catch(e=>alert(String(e.message||e)));
+document.getElementById("refreshBtn").onclick = () => refresh();
+document.getElementById("itemSelect").onchange = updateItemNoSelect;
+
+document.getElementById("adminSetBtn").onclick = setAdminToken;
+document.getElementById("adminClearBtn").onclick = clearAdminToken;
+
+document.getElementById("closeGuideBtn").onclick = () => {
+  document.getElementById("guideOverlay").style.display = "none";
+};
+
+// 초기 실행
+nowLabel();
+setModeUI();
+refresh();
+</script>
 
 </body>
 </html>
