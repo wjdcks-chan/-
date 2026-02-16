@@ -418,7 +418,7 @@ async function resetAll() {
     alert("조회 전용 모드입니다. 초기화는 단대방 노트북에서만 가능합니다.");
     return;
   }
-  if (!confirm("정말 모든 상태를 초기화합니까? (items를 전부 available로 되돌립니다)")) return;
+  if (!confirm("정말 기존 장부를 초기화하고, 새 장부를 작성하십니까?")) return;
 
   const token = getAdminToken();
   await apiPost({ token, action: "reset" });
@@ -480,4 +480,5 @@ refresh();
 
 </body>
 </html>
+
 
