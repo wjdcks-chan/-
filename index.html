@@ -74,8 +74,17 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
   font-size:12px;
   border:1px solid #ddd;
 }
-.badge.available { background:#f7fff7; }
-.badge.rented { background:#fff7f7; border-color:#f2c9c9; }
+/* ✅ 변경: 대여가능=진한초록, 대여중=진한빨강 */
+.badge.available {
+  background:#1B5E20;
+  color:#ffffff;
+  border-color:#1B5E20;
+}
+.badge.rented {
+  background:#B71C1C;
+  color:#ffffff;
+  border-color:#B71C1C;
+}
 
 /* ✅ 상단 모드 표시 */
 .mode-pill {
@@ -243,6 +252,16 @@ const ADMIN_TOKEN_KEY = "이온";
  * =============================== */
 const A4_TOTAL_KEY = "a4_total_v1";   // 전체 누적
 const A4_TODAY_KEY = "a4_today_v1";   // 오늘 누적(=이번 장부 누적)
+
+/** ✅ 추가: 품목별 행 배경(연한 하늘색) */
+const ITEM_BG = {
+  "계산기": "rgba(135, 206, 235, 0.18)",
+  "볼펜":   "rgba(135, 206, 235, 0.18)",
+  "풀":     "rgba(135, 206, 235, 0.18)"
+};
+function getItemBg(itemName) {
+  return ITEM_BG[itemName] || "";
+}
 
 /** ====== 상태 데이터(구글시트 items) ====== */
 let items = [];               // [{item,itemNo,status,renterName,renterStudent,rentTime,returnTime}, ...]
@@ -427,6 +446,9 @@ function renderTable() {
 
   sorted.forEach((r, i) => {
     const tr = document.createElement("tr");
+
+    /* ✅ 변경: 해당 품목이면 행 전체 배경 */
+    tr.style.background = getItemBg(String(r.item || ""));
 
     const status = String(r.status || "");
     const badgeClass = status === "rented" ? "rented" : "available";
@@ -621,5 +643,3 @@ refresh();
 
 </body>
 </html>
-
-
