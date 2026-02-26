@@ -39,26 +39,6 @@ button { cursor:pointer; }
 button:disabled { opacity:0.5; cursor:not-allowed; }
 .reset-btn { background:#eee; }
 
-.overlay {
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.4);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:1000;
-}
-
-.guide-box {
-  background:#fff;
-  padding:20px;
-  width:420px;
-  border-radius:6px;
-  text-align:center;
-}
-
-/* ✅ 타이틀 옆 날짜 라벨 */
 .date-label {
   font-size: 14px;
   color: #888;
@@ -66,7 +46,6 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
   font-weight: normal;
 }
 
-/* ✅ 상태 뱃지 */
 .badge {
   display:inline-block;
   padding:2px 8px;
@@ -77,7 +56,6 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 .badge.available { background:#f7fff7; }
 .badge.rented { background:#fff7f7; border-color:#f2c9c9; }
 
-/* ✅ 상단 모드 표시 */
 .mode-pill {
   display:inline-flex;
   align-items:center;
@@ -95,12 +73,8 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 .mode-dot.admin { background:#2e7d32; }
 .mode-dot.view { background:#999; }
 
-.small {
-  font-size:12px;
-  color:#666;
-}
+.small { font-size:12px; color:#666; }
 
-/* ✅ A4 누적 박스 */
 .a4-box{
   border:1px solid #ddd;
   background:#fbfbfb;
@@ -112,497 +86,145 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
   margin-bottom:8px;
 }
-.a4-title b{ font-size:14px; }
-.a4-total{
-  font-size:13px;
-  color:#444;
-}
-.a4-row{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-.a4-row input{
-  width:140px;
-}
-.a4-row input#a4CountInput{
-  width:120px;
-}
-.a4-hint{
-  margin-top:6px;
-  font-size:12px;
-  color:#666;
-}
+.a4-total{ font-size:13px; color:#444; }
+.a4-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 </style>
 </head>
 <body>
 
-<!-- 최초 접속 안내 팝업 -->
-<div id="guideOverlay" class="overlay">
-  <div class="guide-box">
-    <p>
-      📌 <b>학생회 물품 대여 장부 안내</b><br><br>
-      1. 물품 선택 후 이름·학번 입력 → <b>[대여하기]</b><br>
-      2. 반납은 <b>학생회 담당자 확인 후</b> 처리됩니다.<br>
-      3. 물품 대여는 운영 시간인 <b>10시~18시</b> 내에만 가능합니다.<br><br>
-      ✅ <b>일회용품은 장부를 작성하지 않아도 됩니다.</b>
-    </p>
-    <button id="closeGuideBtn">확인</button>
-  </div>
-</div>
-
-<!-- ✅ 타이틀 + 오늘 날짜 -->
 <h1>
   학생회 물품 대여 장부
   <span id="todayLabel" class="date-label"></span>
 </h1>
 
-<!-- 상단 공지 -->
 <div class="notice-box">
 ✔ 물품 대여는 운영 시간인 <b>10시~18시</b> 내에만 가능합니다.<br>
-✔ 물품 반납 또한 <b>대여 당일 운영 시간 내</b>에 부탁드립니다.<br>
-✔ 반납은 <b>학생회 담당자의 확인</b>이 필요합니다.<br>
-<span class="small">※ 이 페이지는 누구나 조회할 수 있으며, 대여/반납/초기화 및 A4 사용 기록은 학생회 관리자만 가능합니다.</span>
+✔ 반납은 학생회 담당자의 확인이 필요합니다.
 </div>
 
 <div class="top-area">
-  <span class="mode-pill" id="modePill">
+  <span class="mode-pill">
     <span class="mode-dot view" id="modeDot"></span>
     <span id="modeText">조회 전용 모드</span>
   </span>
 
-  <!-- ✅ 버튼 이름 변경(이전 요청 반영) -->
   <button id="adminSetBtn">E:ON 접속</button>
   <button id="adminClearBtn">E:ON 로그아웃</button>
-
   <button class="reset-btn" id="resetBtn">초기화 (새 장부)</button>
-  <button id="refreshBtn">새로고침</button>
 </div>
 
-<!-- ✅ A4 사용량 누적 (가장 위) -->
+<!-- ✅ A4 최상단 -->
 <div class="a4-box">
   <div class="a4-title">
-    <b>📄 A4 사용량 기록(누적)</b>
-    <span class="a4-total">누적 사용: <b id="a4TotalLabel">0</b> 장</span>
+    <b>📄 A4 사용 기록</b>
+    <span class="a4-total">
+      전체 누적: <b id="a4TotalLabel">0</b>장
+    </span>
   </div>
 
   <div class="a4-row">
     <input id="a4NameInput" placeholder="이름">
     <input id="a4StudentInput" placeholder="학번">
-    <input id="a4CountInput" type="number" min="1" step="1" placeholder="사용 장수">
+    <input id="a4CountInput" type="number" min="1" placeholder="사용 장수">
     <button id="a4AddBtn">A4 사용 기록</button>
+    <span id="a4TodayLabel" class="small">오늘 누적: 0장</span>
   </div>
-
-  <div class="a4-hint">※ 입력한 장수는 ‘초기화’ 전까지 계속 누적됩니다.</div>
 </div>
-
-<!-- 기존 대여 폼 -->
-<div class="form-area">
-  <select id="itemSelect"></select>
-  <select id="itemNoSelect"></select>
-  <input id="nameInput" placeholder="이름">
-  <input id="studentInput" placeholder="학번">
-  <button id="rentBtn">대여하기</button>
-</div>
-
-<table>
-<thead>
-<tr>
-<th>번호</th>
-<th>물품</th>
-<th>물품번호</th>
-<th>상태</th>
-<th>이름</th>
-<th>학번</th>
-<th>대여 시각</th>
-<th>반납 시각</th>
-<th>반납</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
 
 <script>
-/** ===============================
- * ✅ 너가 바꿀 것 1개: SCRIPT_URL
- * =============================== */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiC5h37_p7_m-mDOgffQjSIgJQc2q82d1SdrZZkVAgGIeK2UH_DaxIWMDW0J-kf_xfOA/exec";
-
-/** ===============================
- * 관리자 토큰 저장 키(단대방 노트북에만 저장)
- * =============================== */
 const ADMIN_TOKEN_KEY = "정찬";
-
-/** ===============================
- * ✅ A4 누적 저장(로컬 누적)
- * =============================== */
 const A4_TOTAL_KEY = "a4_total_v1";
-const A4_LOG_KEY   = "a4_log_v1"; // 필요하면 나중에 로그도 볼 수 있게 남겨둠
 
-/** ====== 상태 데이터(구글시트 items) ====== */
-let items = [];               // [{item,itemNo,status,renterName,renterStudent,rentTime,returnTime}, ...]
-let itemMap = new Map();      // key: "item::itemNo" -> row object
-let activeSet = new Set();    // rented인 것만 item::itemNo
+let a4TodayCount = 0;
 
-function nowLabel() {
+/* 날짜 표시 */
+(function(){
   const d=new Date();
   const y=d.getFullYear();
   const m=String(d.getMonth()+1).padStart(2,"0");
   const day=String(d.getDate()).padStart(2,"0");
-  const el=document.getElementById("todayLabel");
-  if(el) el.textContent=`(${y}.${m}.${day} 기준)`;
-}
+  document.getElementById("todayLabel").textContent=`(${y}.${m}.${day} 기준)`;
+})();
 
-/** ===== A4 누적 로드/표시 ===== */
-function getA4Total() {
-  const v = Number(localStorage.getItem(A4_TOTAL_KEY) || "0");
-  return Number.isFinite(v) ? v : 0;
-}
-function setA4Total(n) {
-  localStorage.setItem(A4_TOTAL_KEY, String(n));
-  const el = document.getElementById("a4TotalLabel");
-  if (el) el.textContent = String(n);
-}
-function appendA4Log(entry) {
-  const arr = JSON.parse(localStorage.getItem(A4_LOG_KEY) || "[]");
-  arr.push(entry);
-  localStorage.setItem(A4_LOG_KEY, JSON.stringify(arr));
-}
-function initA4UI() {
-  setA4Total(getA4Total());
-}
+/* 관리자 모드 */
+function isAdmin(){ return !!localStorage.getItem(ADMIN_TOKEN_KEY); }
 
-function getAdminToken() {
-  return localStorage.getItem(ADMIN_TOKEN_KEY) || "";
-}
-function isAdmin() {
-  return !!getAdminToken();
-}
-function setModeUI() {
-  const dot = document.getElementById("modeDot");
-  const text = document.getElementById("modeText");
-  if (isAdmin()) {
+function setModeUI(){
+  const dot=document.getElementById("modeDot");
+  const text=document.getElementById("modeText");
+  if(isAdmin()){
     dot.classList.add("admin");
     dot.classList.remove("view");
-    text.textContent = "E:ON 관리자 모드(단대방 전용)";
-  } else {
+    text.textContent="E:ON 관리자 모드";
+  }else{
     dot.classList.add("view");
     dot.classList.remove("admin");
-    text.textContent = "조회 전용 모드";
+    text.textContent="조회 전용 모드";
   }
-
-  // 관리자만 가능: 대여/반납/초기화/A4기록
-  document.getElementById("rentBtn").disabled = !isAdmin();
-  document.getElementById("resetBtn").disabled = !isAdmin();
-
-  document.getElementById("nameInput").disabled = !isAdmin();
-  document.getElementById("studentInput").disabled = !isAdmin();
-
-  document.getElementById("a4AddBtn").disabled = !isAdmin();
-  document.getElementById("a4NameInput").disabled = !isAdmin();
-  document.getElementById("a4StudentInput").disabled = !isAdmin();
-  document.getElementById("a4CountInput").disabled = !isAdmin();
+  document.getElementById("a4AddBtn").disabled=!isAdmin();
 }
 
-async function apiGetItems() {
-  const res = await fetch(SCRIPT_URL, { method: "GET" });
-  const json = await res.json();
-  if (!json.ok) throw new Error(json.error || "GET failed");
-  return json.items || [];
-}
-
-async function apiPost(payload) {
-  const res = await fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
-  });
-  const json = await res.json();
-  if (!json.ok) throw new Error(json.error || "POST failed");
-  return json;
-}
-
-function rebuildIndex() {
-  itemMap.clear();
-  activeSet.clear();
-  for (const r of items) {
-    const key = `${r.item}::${r.itemNo}`;
-    itemMap.set(key, r);
-    if (String(r.status) === "rented" && String(r.itemNo) !== "∞") {
-      activeSet.add(key);
-    }
-  }
-}
-
-/** items 데이터를 기반으로 물품/번호 셀렉트 구성 */
-function initItemSelect() {
-  const sel = document.getElementById("itemSelect");
-  sel.innerHTML = "";
-
-  // item 목록 추출(정렬)
-  const itemNames = Array.from(new Set(items.map(x => String(x.item)))).sort((a,b)=>a.localeCompare(b,"ko"));
-
-  for (const name of itemNames) {
-    const o = document.createElement("option");
-    o.value = name;
-    o.textContent = name;
-    sel.appendChild(o);
-  }
-}
-
-function sortItemNo(a, b) {
-  // "∞"는 맨 뒤
-  if (a === "∞" && b === "∞") return 0;
-  if (a === "∞") return 1;
-  if (b === "∞") return -1;
-  const na = Number(a), nb = Number(b);
-  if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
-  return String(a).localeCompare(String(b),"ko");
-}
-
-function updateItemNoSelect() {
-  const item = document.getElementById("itemSelect").value;
-  const sel = document.getElementById("itemNoSelect");
-  sel.innerHTML = "";
-
-  const nos = items
-    .filter(x => String(x.item) === item)
-    .map(x => String(x.itemNo))
-    .sort(sortItemNo);
-
-  for (const no of nos) {
-    const o = document.createElement("option");
-    o.value = no;
-    const key = `${item}::${no}`;
-    const row = itemMap.get(key);
-
-    if (no !== "∞" && row && String(row.status) === "rented") {
-      o.disabled = true;
-      o.textContent = `${no}번 (대여중)`;
-    } else if (no === "∞") {
-      o.textContent = `(대여 가능)`;
-    } else {
-      o.textContent = `${no}번`;
-    }
-    sel.appendChild(o);
-  }
-
-  // 첫 번째 enabled 옵션으로 자동 선택
-  const first = [...sel.options].find(x => !x.disabled);
-  sel.value = first ? first.value : "";
-}
-
-/** 테이블 렌더: items 시트 현재 상태를 그대로 표시 */
-function renderTable() {
-  const body = document.getElementById("tableBody");
-  body.innerHTML = "";
-
-  const sorted = [...items].sort((a,b)=>{
-    const ia = String(a.item).localeCompare(String(b.item),"ko");
-    if (ia !== 0) return ia;
-    return sortItemNo(String(a.itemNo), String(b.itemNo));
-  });
-
-  sorted.forEach((r, i) => {
-    const tr = document.createElement("tr");
-
-    const status = String(r.status || "");
-    const badgeClass = status === "rented" ? "rented" : "available";
-    const badgeText = status === "rented" ? "대여중" : "대여가능";
-
-    tr.innerHTML =
-      `<td>${i+1}</td>` +
-      `<td>${escapeHtml(String(r.item||""))}</td>` +
-      `<td>${String(r.itemNo)==="∞" ? "-" : escapeHtml(String(r.itemNo))}</td>` +
-      `<td><span class="badge ${badgeClass}">${badgeText}</span></td>` +
-      `<td>${escapeHtml(String(r.renterName||""))}</td>` +
-      `<td>${escapeHtml(String(r.renterStudent||""))}</td>` +
-      `<td>${formatTime(r.rentTime)}</td>` +
-      `<td>${formatTime(r.returnTime)}</td>` +
-      `<td></td>`;
-
-    const btn = document.createElement("button");
-    btn.textContent = "반납";
-
-    const canReturn = isAdmin() && status === "rented";
-    btn.disabled = !canReturn;
-
-    btn.onclick = async () => {
-      try {
-        await returnItem(String(r.item), String(r.itemNo));
-      } catch (e) {
-        alert(String(e.message || e));
-      }
-    };
-
-    tr.lastChild.appendChild(btn);
-    body.appendChild(tr);
-  });
-}
-
-function formatTime(v) {
-  if (!v) return "";
-  try {
-    if (typeof v === "string") return v;
-    if (typeof v === "number") return new Date(v).toLocaleString("ko-KR");
-    return String(v);
-  } catch {
-    return String(v);
-  }
-}
-
-function escapeHtml(s) {
-  return s
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-/** ===== A4 사용 기록(누적) ===== */
-function addA4Usage() {
-  if (!isAdmin()) {
-    alert("조회 전용 모드입니다. A4 사용 기록은 단대방 노트북(관리자 모드)에서만 가능합니다.");
-    return;
-  }
-
-  const name = document.getElementById("a4NameInput").value.trim();
-  const student = document.getElementById("a4StudentInput").value.trim();
-  const countRaw = document.getElementById("a4CountInput").value.trim();
-  const count = Number(countRaw);
-
-  if (!name || !student) {
-    alert("이름과 학번을 입력하세요.");
-    return;
-  }
-  if (!Number.isFinite(count) || count <= 0 || !Number.isInteger(count)) {
-    alert("사용 장수는 1 이상의 정수로 입력하세요.");
-    return;
-  }
-
-  const total = getA4Total() + count;
-  setA4Total(total);
-
-  appendA4Log({
-    name, student,
-    count,
-    at: new Date().toLocaleString("ko-KR")
-  });
-
-  document.getElementById("a4NameInput").value = "";
-  document.getElementById("a4StudentInput").value = "";
-  document.getElementById("a4CountInput").value = "";
-
-  alert(`A4 사용 ${count}장 기록 완료 (누적 ${total}장)`);
-}
-
-/** ===== 관리자 동작(POST) ===== */
-async function rentItem() {
-  const item = document.getElementById("itemSelect").value;
-  const itemNo = document.getElementById("itemNoSelect").value;
-  const name = document.getElementById("nameInput").value.trim();
-  const student = document.getElementById("studentInput").value.trim();
-
-  if (!isAdmin()) {
-    alert("조회 전용 모드입니다. 대여 처리는 단대방 노트북에서만 가능합니다.");
-    return;
-  }
-  if (!name || !student) {
-    alert("이름과 학번을 입력하세요.");
-    return;
-  }
-
-  const token = getAdminToken();
-  await apiPost({ token, action: "rent", item, itemNo, name, student });
-
-  document.getElementById("nameInput").value = "";
-  document.getElementById("studentInput").value = "";
-  await refresh();
-}
-
-async function returnItem(item, itemNo) {
-  const token = getAdminToken();
-  if (!token) throw new Error("관리자 토큰이 필요합니다.");
-  await apiPost({ token, action: "return", item, itemNo });
-  await refresh();
-}
-
-async function resetAll() {
-  if (!isAdmin()) {
-    alert("조회 전용 모드입니다. 초기화는 단대방 노트북에서만 가능합니다.");
-    return;
-  }
-  if (!confirm("정말 기존 장부를 초기화하고, 새 장부를 작성하십니까?")) return;
-
-  const token = getAdminToken();
-  await apiPost({ token, action: "reset" });
-
-  // ✅ A4 누적도 같이 초기화
-  localStorage.removeItem(A4_TOTAL_KEY);
-  localStorage.removeItem(A4_LOG_KEY);
-  initA4UI();
-
-  await refresh();
-}
-
-/** ===== 관리자 모드 토큰 설정/해제 ===== */
-function setAdminToken() {
-  const t = prompt("관리자 비밀번호를 입력하세요.");
-  if (!t) return;
-  localStorage.setItem(ADMIN_TOKEN_KEY, t.trim());
+document.getElementById("adminSetBtn").onclick=()=>{
+  const t=prompt("관리자 비밀번호 입력");
+  if(t) localStorage.setItem(ADMIN_TOKEN_KEY,t.trim());
   setModeUI();
-  renderTable();
-  updateItemNoSelect();
-}
-
-function clearAdminToken() {
-  if (!confirm("이 기기에서 E:ON 로그아웃 할까요?")) return;
+};
+document.getElementById("adminClearBtn").onclick=()=>{
   localStorage.removeItem(ADMIN_TOKEN_KEY);
   setModeUI();
-  renderTable();
-  updateItemNoSelect();
-}
-
-/** ===== 데이터 로드/갱신 ===== */
-async function refresh() {
-  try {
-    items = await apiGetItems();
-    rebuildIndex();
-
-    initItemSelect();
-    updateItemNoSelect();
-
-    renderTable();
-  } catch (e) {
-    alert("데이터를 불러오지 못했습니다.\n" + String(e.message || e));
-  }
-}
-
-/** ===== 이벤트 바인딩 ===== */
-document.getElementById("rentBtn").onclick = () => rentItem().catch(e=>alert(String(e.message||e)));
-document.getElementById("resetBtn").onclick = () => resetAll().catch(e=>alert(String(e.message||e)));
-document.getElementById("refreshBtn").onclick = () => refresh();
-document.getElementById("itemSelect").onchange = updateItemNoSelect;
-
-document.getElementById("adminSetBtn").onclick = setAdminToken;
-document.getElementById("adminClearBtn").onclick = clearAdminToken;
-
-document.getElementById("a4AddBtn").onclick = addA4Usage;
-
-document.getElementById("closeGuideBtn").onclick = () => {
-  document.getElementById("guideOverlay").style.display = "none";
 };
 
-// 초기 실행
-nowLabel();
-initA4UI();
+/* A4 전체 누적 */
+function getTotal(){ return Number(localStorage.getItem(A4_TOTAL_KEY)||0); }
+function setTotal(n){
+  localStorage.setItem(A4_TOTAL_KEY,n);
+  document.getElementById("a4TotalLabel").textContent=n;
+}
+
+/* 오늘 누적 */
+function setTodayLabel(){
+  document.getElementById("a4TodayLabel").textContent=`오늘 누적: ${a4TodayCount}장`;
+}
+
+/* A4 기록 */
+document.getElementById("a4AddBtn").onclick=()=>{
+  if(!isAdmin()) return alert("관리자만 기록 가능");
+
+  const name=document.getElementById("a4NameInput").value.trim();
+  const student=document.getElementById("a4StudentInput").value.trim();
+  const count=Number(document.getElementById("a4CountInput").value);
+
+  if(!name||!student) return alert("이름/학번 입력");
+  if(!Number.isInteger(count)||count<=0) return alert("장수는 1 이상 정수");
+
+  const total=getTotal()+count;
+  setTotal(total);
+
+  a4TodayCount+=count;
+  setTodayLabel();
+
+  document.getElementById("a4NameInput").value="";
+  document.getElementById("a4StudentInput").value="";
+  document.getElementById("a4CountInput").value="";
+};
+
+/* 초기화 */
+document.getElementById("resetBtn").onclick=()=>{
+  if(!isAdmin()) return alert("관리자만 초기화 가능");
+  if(!confirm("전체 초기화하시겠습니까?")) return;
+  localStorage.removeItem(A4_TOTAL_KEY);
+  setTotal(0);
+  a4TodayCount=0;
+  setTodayLabel();
+};
+
+/* 초기 실행 */
+setTotal(getTotal());
+a4TodayCount=0;
+setTodayLabel();
 setModeUI();
-refresh();
 </script>
 
 </body>
